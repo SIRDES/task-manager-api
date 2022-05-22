@@ -2,7 +2,8 @@ const express = require("express");
 const User = require("../modal/user");
 const auth = require("../middleware/auth");
 const multer = require("../utils/multer");
-const sharp = require("sharp")
+const sharp = require("sharp");
+const { sendWelcomeMail, sendGoodbyeMail } = require("../utils/sendEmail");
 
 const router = new express.Router();
 // Request for creating a new user
@@ -10,6 +11,7 @@ router.post("/users", async (req, res) => {
   const user = new User(req.body);
   try {
     await user.save();
+    sendWelcomeMail(user.name, user.email);
     const token = await user.generateAuthToken();
     res.status(201).send({ user, token });
   } catch (error) {
@@ -92,12 +94,17 @@ router.post("/users/login", async (req, res) => {
 
 // upload profile image
 router.post(
-  "/users/me/avatar",auth,multer.single("avatar"),
+  "/users/me/avatar",
+  auth,
+  multer.single("avatar"),
   async (req, res) => {
     try {
       // converting and resizing user uploaded image
-      const buffer = await sharp(req.file.buffer).resize({height: 250, width: 250}).png().toBuffer()
-      
+      const buffer = await sharp(req.file.buffer)
+        .resize({ height: 250, width: 250 })
+        .png()
+        .toBuffer();
+
       req.user.avatar = buffer;
       await req.user.save();
       res.send("done");
@@ -109,17 +116,21 @@ router.post(
 // Get profile image
 router.get("/users/:id/avatar", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const user = await User.findById(req.params.id);
 
-    if(!user || !user.avatar){
-      return res.status(404).send({status: "error", error: "No profile image found"})
+    if (!user || !user.avatar) {
+      return res
+        .status(404)
+        .send({ status: "error", error: "No profile image found" });
     }
     res.set("Content-Type", "image/jpeg");
     res.send(user.avatar);
   } catch (error) {
-    res.status(500).send({status: "error", error: error.message || "some error occurred"})
+    res
+      .status(500)
+      .send({ status: "error", error: error.message || "some error occurred" });
   }
-})
+});
 //delete profile image
 router.delete("/users/me/avatar", auth, async (req, res) => {
   try {
@@ -127,9 +138,9 @@ router.delete("/users/me/avatar", auth, async (req, res) => {
     await req.user.save();
     res.send("Profile image deleted");
   } catch (error) {
-    res.status(500).send({error: error.message})
+    res.status(500).send({ error: error.message });
   }
-})
+});
 //logout a user from a device/session
 router.post("/users/logout", auth, async (req, res) => {
   try {
@@ -214,6 +225,7 @@ router.delete("/users/me", auth, async (req, res) => {
     //   return res.status(404).send({ error: "user not found" });
     // }
     await req.user.remove();
+    sendGoodbyeMail(req.user.name, req.user.email)
     res.send(req.user);
   } catch (error) {
     res.status(500).send();
