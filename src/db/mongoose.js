@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
+const {MONGODB_URL} = require("../utils/secrets")
 // const validator = require("validator")
 
-mongoose.connect("mongodb://127.0.0.1:27017/task-manager-api", {
+mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
 });
-
-
-
-
 
 // const task1 = new Task({
 //   description: "Go shopping again",
