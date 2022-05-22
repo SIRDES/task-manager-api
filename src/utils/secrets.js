@@ -1,4 +1,4 @@
-require("env-cmd")
+require("dotenv/config")
 
 const { PORT, EMAIL, EMAIL_PASSWORD, MONGODB_URL, JWT_SECRET, BCRYPT_SALT } =
   process.env;
@@ -11,10 +11,11 @@ const requiredCredentials = [
   "BCRYPT_SALT",
 ];
 
-for(const credential in requiredCredentials){
-  if(process.env[credential] === undefined){
-    console.log(`Missing required credential ${credential}`)
-    process.exit(1)
+for (const credential of requiredCredentials) {
+  if (process.env[credential] === undefined) {
+    // console.log(process.env[credential]);
+    console.log(`Missing required credential ${credential}`);
+    process.exit(1);
   }
 }
 

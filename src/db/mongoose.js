@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
-const {MONGODB_URL} = require("../utils/secrets")
+const { MONGODB_URL } = require("../utils/secrets");
 // const validator = require("validator")
 
 mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
 });
 
 // const task1 = new Task({
