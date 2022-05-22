@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../modal/user");
 const auth = require("../middleware/auth");
 const multer = require("../utils/multer");
+const sharp = require("sharp")
 
 const router = new express.Router();
 // Request for creating a new user
@@ -94,7 +95,10 @@ router.post(
   "/users/me/avatar",auth,multer.single("avatar"),
   async (req, res) => {
     try {
-      req.user.avatar = req.file.buffer;
+      // converting and resizing user uploaded image
+      const buffer = await sharp(req.file.buffer).resize({height: 250, width: 250}).png().toBuffer()
+      
+      req.user.avatar = buffer;
       await req.user.save();
       res.send("done");
     } catch (error) {
